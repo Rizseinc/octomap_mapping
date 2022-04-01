@@ -103,6 +103,7 @@ public:
   virtual void insertCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud);
   virtual bool openFile(const std::string& filename);
 
+
 protected:
   inline static void updateMinKey(const octomap::OcTreeKey& in, octomap::OcTreeKey& min) {
     for (unsigned i = 0; i < 3; ++i)
@@ -142,6 +143,10 @@ protected:
 
   /// label the input cloud "pc" into ground and nonground. Should be in the robot's fixed frame (not world!)
   void filterGroundPlane(const PCLPointCloud& pc, PCLPointCloud& ground, PCLPointCloud& nonground) const;
+
+  void removePointsInRadius(PCLPointCloud& cloud_in, float radius_);
+
+  void removeZeroPoints(PCLPointCloud& cloud_in);
 
   /**
   * @brief Find speckle nodes (single occupied voxels with no neighbors). Only works on lowest resolution!
@@ -249,6 +254,11 @@ protected:
   double m_groundFilterDistance;
   double m_groundFilterAngle;
   double m_groundFilterPlaneDistance;
+
+  bool m_filterDrone;
+  double m_filterRadialDistance;
+  double m_filterZeroPoints;
+
 
   bool m_compressMap;
 

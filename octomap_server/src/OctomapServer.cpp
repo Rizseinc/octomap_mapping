@@ -92,6 +92,9 @@ OctomapServer::OctomapServer(const ros::NodeHandle private_nh_, const ros::NodeH
 
   m_nh_private.param("filter_speckles", m_filterSpeckles, m_filterSpeckles);
   m_nh_private.param("filter_ground", m_filterGroundPlane, m_filterGroundPlane);
+  m_nh_private.param("filter_drone", m_filterDrone, m_filterDrone);
+  m_nh_private.param("drone_filter_radial_distance", m_filterRadialDistance, m_filterRadialDistance);
+  m_nh_private.param("filter_zero_points", m_filterZeroPoints, m_filterZeroPoints);
   // distance of points from plane for RANSAC
   m_nh_private.param("ground_filter/distance", m_groundFilterDistance, m_groundFilterDistance);
   // angular derivation of found plane:
@@ -293,6 +296,15 @@ void OctomapServer::insertCloudCallback(const sensor_msgs::PointCloud2::ConstPtr
 
   PCLPointCloud pc_ground; // segmented ground plane
   PCLPointCloud pc_nonground; // everything else
+
+  //Should i work in sensor frame? that does make sense because in sensor frame you are removing both zeros
+  if(m_filterDrone){
+    removePointsInRadius(pc, m_filterRadialDistance);
+  }
+
+  if(m_filterZeroPoints){
+    removeZeroPoints(pc);
+  }
 
   if (m_filterGroundPlane){
     tf::StampedTransform sensorToBaseTf, baseToWorldTf;
@@ -820,6 +832,22 @@ void OctomapServer::publishFullOctoMap(const ros::Time& rostime) const{
 
 }
 
+void OctomapServer::removePointsInRadius(PCLPointCloud& cloud_in, float radius_){
+    for(PCLPointCloud::iterator it=cloud_in.begin(); it!=cloud_in.end(); it++){
+        float radius = sqrt(pow(it->x,2)+ pow(it->y,2) + pow(it->z,2));
+        if(radius < radius_){
+            cloud_in.erase(it);
+        }
+    }
+}
+
+void OctomapServer::removeZeroPoints(PCLPointCloud& cloud_in){
+    for(PCLPointCloud::iterator it=cloud_in.begin(); it!=cloud_in.end(); it++){
+        if(it->x==0 && it->y==0 && it->z){
+            cloud_in.erase(it);
+        }
+    }  
+}
 
 void OctomapServer::filterGroundPlane(const PCLPointCloud& pc, PCLPointCloud& ground, PCLPointCloud& nonground) const{
   ground.header = pc.header;
