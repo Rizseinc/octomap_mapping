@@ -843,7 +843,7 @@ void OctomapServer::removePointsInRadius(PCLPointCloud& cloud_in, float radius_)
 
 void OctomapServer::removeZeroPoints(PCLPointCloud& cloud_in){
     for(PCLPointCloud::iterator it=cloud_in.begin(); it!=cloud_in.end(); it++){
-        if(it->x==0 && it->y==0 && it->z){
+        if(it->x==0 && it->y==0 && it->z==0){
             cloud_in.erase(it);
         }
     }  
